@@ -1,0 +1,46 @@
+import pandas as pd
+from sql import execute_query_bane
+from sql import execute_query_sc
+
+
+use_sql = True
+
+Date = '2025-05-01'
+
+print(f"Date: {Date}, Type: {type(Date)}")
+
+
+## parse newly created securities from SQL
+if use_sql == True:
+    data = execute_query_sc(Date = Date)
+else:
+    pathway_insert = fr'C:\Users\matthewray\OneDrive - Clearwater\Desktop\Python\PayPal - Bane Check\sc_bane_check_test.xlsx'
+    data = pd.read_excel(pathway_insert)
+
+df = data
+
+##Clean for only floating rates
+df =df.rename(columns = {'SecurityID': 'securityid'})
+df = df[['tsCreated', 'securityid','AccountID','Cusip','ISIN','detailedDescription','Coupon','CpnFrequency','isFloatingRate','FloaterSpread']]
+df = df[df['isFloatingRate'] == 1]
+
+
+# convert security IDs to a comma separated list and create df_2 for Bane Table
+security_id_list = df['securityid'].to_list()
+security_ids_str = ', '.join(map(str, security_id_list))
+
+df_2 = execute_query_bane(security_ids = security_ids_str)
+
+## Join the two dfs
+
+merged_df = pd.merge(df,df_2, on = 'securityid', how='outer')
+
+merged_df = merged_df[merged_df['calcTypeCode'].isnull()]
+
+
+if merged_df.empty:
+    print('All Securities for the Period are on BANE')
+
+else:
+    merged_df.to_excel(fr'C:\Users\matthewray\OneDrive - Clearwater\Desktop\Python\PayPal - Bane Check\Output\{Date}_Output.xlsx')
+    print("One or more securities are not set up on BANE - see output")
