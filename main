@@ -5,9 +5,7 @@ from sql import execute_query_sc
 
 use_sql = True
 
-Date = '2025-05-01'
-
-print(f"Date: {Date}, Type: {type(Date)}")
+Date = '2025-07-01'
 
 
 ## parse newly created securities from SQL
@@ -29,13 +27,21 @@ df = df[df['isFloatingRate'] == 1]
 security_id_list = df['securityid'].to_list()
 security_ids_str = ', '.join(map(str, security_id_list))
 
-df_2 = execute_query_bane(security_ids = security_ids_str)
+## parse newly created securities from SQL
+if use_sql == True:
+    df_2 = execute_query_bane(security_ids = security_ids_str)
+else:
+    pathway_insert = fr'C:\Users\matthewray\OneDrive - Clearwater\Desktop\Python\PayPal - Bane Check\bane_table_test.xlsx'
+    df_2 = pd.read_excel(pathway_insert)
+
 
 ## Join the two dfs
 
 merged_df = pd.merge(df,df_2, on = 'securityid', how='outer')
 
-merged_df = merged_df[merged_df['calcTypeCode'].isnull()]
+merged_df.to_excel(fr'C:\Users\matthewray\OneDrive - Clearwater\Desktop\Python\PayPal - Bane Check\Output\{Date}_Output_test.xlsx')
+
+merged_df = merged_df[merged_df['calcTypeCode'].isna() | (merged_df['calcTypeCode'] < 0)]
 
 
 if merged_df.empty:
