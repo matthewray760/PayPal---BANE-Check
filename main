@@ -1,16 +1,18 @@
 import pandas as pd
 from sql import execute_query_bane
 from sql import execute_query_sc
+import tkinter
+from message import show_popup,get_input
 
 
 use_sql = True
 
-Date = '2025-07-01'
+date = get_input("Please enter the begin date: ")
 
 
 ## parse newly created securities from SQL
 if use_sql == True:
-    data = execute_query_sc(Date = Date)
+    data = execute_query_sc(Date = date)
 else:
     pathway_insert = fr'C:\Users\matthewray\OneDrive - Clearwater\Desktop\Python\PayPal - Bane Check\sc_bane_check_test.xlsx'
     data = pd.read_excel(pathway_insert)
@@ -39,14 +41,18 @@ else:
 
 merged_df = pd.merge(df,df_2, on = 'securityid', how='outer')
 
-merged_df.to_excel(fr'C:\Users\matthewray\OneDrive - Clearwater\Desktop\Python\PayPal - Bane Check\Output\{Date}_Output_test.xlsx')
+#merged_df.to_excel(fr'C:\Users\matthewray\OneDrive - Clearwater\Desktop\Python\PayPal - Bane Check\Output\{date}_Output_test.xlsx')
 
 merged_df = merged_df[merged_df['calcTypeCode'].isna() | (merged_df['calcTypeCode'] < 0)]
 
 
 if merged_df.empty:
-    print('All Securities for the Period are on BANE')
+    show_popup('All Securities for the Period are on BANE')
 
 else:
-    merged_df.to_excel(fr'C:\Users\matthewray\OneDrive - Clearwater\Desktop\Python\PayPal - Bane Check\Output\{Date}_Output.xlsx')
-    print("One or more securities are not set up on BANE - see output")
+    merged_df.to_excel(fr'C:\Users\matthewray\OneDrive - Clearwater\Desktop\Python\PayPal - Bane Check\Output\Bane_Check_Output_{date}.xlsx')
+    show_popup("One or more securities are not set up on BANE - see output file")
+
+
+
+#merged_df.to_excel(fr'C:\Users\matthewray\OneDrive - Clearwater\Desktop\Python\PayPal - Bane Check\Output\{Date}_Output_test.xlsx')
